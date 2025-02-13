@@ -32,9 +32,12 @@ RSpec.describe AlbLogExporter do
   end
 
   describe "#process_event" do
-    it "fails if the event has no records"
-    it "extracts a single log file from the event"
-    it "extracts multiple log files from the event"
+    it "fails if the event has no records" do
+      stub_logger
+      event = {}
+
+      expect { exporter.process_event(event:) }.to raise_error(/No records/)
+    end
 
     it "processes an uncompressed log file" do
       stub_logger
@@ -98,6 +101,7 @@ RSpec.describe AlbLogExporter do
         .with(body: example_output)
     end
 
+    it "extracts multiple log files from the event"
     it "handles errors"
   end
 end

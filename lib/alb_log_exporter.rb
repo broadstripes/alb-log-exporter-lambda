@@ -51,9 +51,11 @@ class AlbLogExporter
   def fetch_log_file(bucket:, key:)
     @logger.info("fetching file (#{bucket}, #{key})")
     s3_resp = @s3.get_object(bucket: bucket, key: key)
-    io = s3_resp.body
-    io = Zlib::GzipReader.new(io) if key.end_with?(".gz")
-    io
+    if key.end_with?(".gz")
+      Zlib::GzipReader.zcat(s3_resp.body)
+    else
+      s3_resp.body.read
+    end
   end
 
   def send_logs_to_loggly(file:)
