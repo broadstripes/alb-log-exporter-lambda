@@ -4,7 +4,9 @@ COPY Gemfile Gemfile.lock ${LAMBDA_TASK_ROOT}/
 
 RUN gem install bundler:2.6.3 && \
     bundle config set --local path 'vendor/bundle' && \
+    bundle config set --local deployment true && \
+    bundle config set --local without development && \
     bundle install
 
-COPY lambda_handler.rb src ${LAMBDA_TASK_ROOT}/
+COPY lambda_handler.rb lib ${LAMBDA_TASK_ROOT}/
 CMD [ "lambda_handler.LambdaHandler.call" ]
