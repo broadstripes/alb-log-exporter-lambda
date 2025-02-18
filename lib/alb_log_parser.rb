@@ -89,7 +89,7 @@ class AlbLogParser
 
   def parse_line(input)
     match_data = LOG_ENTRY_REGEX.match(input)
-    raise ArgumentError, "couldn't parse line" if match_data.nil?
+    raise ArgumentError, "couldn't parse #{input.inspect}" if match_data.nil?
 
     match_data.named_captures.compact.slice(*DESIRED_FIELDS)
               .then { process_number_fields(_1) }
