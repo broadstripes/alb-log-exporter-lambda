@@ -8,5 +8,6 @@ RUN gem install bundler:2.6.3 && \
     bundle config set --local without development && \
     bundle install
 
-COPY lambda_handler.rb lib ${LAMBDA_TASK_ROOT}/
+COPY lambda_handler.rb ${LAMBDA_TASK_ROOT}/
+COPY lib ${LAMBDA_TASK_ROOT}/lib
 CMD [ "lambda_handler.LambdaHandler.call" ]
