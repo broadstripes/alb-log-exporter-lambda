@@ -24,9 +24,9 @@ class AlbLogParser
          |
          (?<target> \S+ )
        )
-    \s (?<request_processing_time> [\d.]+ )
-    \s (?<target_processing_time> [\d.]+ )
-    \s (?<response_processing_time> [\d.]+ )
+    \s (?<request_processing_time> [\-\d.]+ )
+    \s (?<target_processing_time> [\-\d.]+ )
+    \s (?<response_processing_time> [\-\d.]+ )
     \s (?<elb_status_code> \S+ )
     \s (?<target_status_code> \S+ )
     \s (?<received_bytes> \S+ )
@@ -100,9 +100,9 @@ class AlbLogParser
   def process_number_fields(hash)
     hash.transform_values do |value|
       case value
-      when /^\d+\.\d+$/
+      when /^-?\d+\.\d+$/
         value.to_f
-      when /^[1-9]\d*$/
+      when /^-?[1-9]\d*$/
         value.to_i
       else
         value

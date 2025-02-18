@@ -48,5 +48,44 @@ RSpec.describe AlbLogParser do
 
       expect(parser.parse_line(input)).to eq(expected_output)
     end
+
+    it "parses a bad line" do
+      input = <<~LOG_LINE.gsub(/\s+/, " ")
+        https 2025-02-18T19:47:39.417332Z app/fakelb/85e233c1f9f64494
+        255.203.249.63:57786
+        - -1 -1 -1 500 - 199 227
+        "GET https://29.29.29.29:443/ HTTP/1.1"
+        "Evilbot"
+        ECDHE-RSA-AES128-GCM-SHA256
+        TLSv1.2 -
+        "Root=1-67b4e3db-1aa06a2f2ea8466d492f3e53"
+        "-"
+        "fakecert"
+        0
+        2025-02-18T19:47:39.417000Z
+        "fixed-response" "-" "-" "-" "-" "-" "-"
+        TID_4420b83d6a496c46bcc6be6a6e5e6873
+      LOG_LINE
+      expected_output = {
+        "request_type" => "https",
+        "timestamp" => "2025-02-18T19:47:39.417332Z",
+        "client_ip" => "255.203.249.63",
+        "target" => "-",
+        "request_processing_time" => -1,
+        "target_processing_time" => -1,
+        "response_processing_time" => -1,
+        "elb_status_code" => 500,
+        "target_status_code" => "-",
+        "received_bytes" => 199,
+        "sent_bytes" => 227,
+        "request_method" => "GET",
+        "request_url" => "https://29.29.29.29:443/",
+        "user_agent" => "Evilbot",
+        "target_group_arn" => "-",
+        "request_creation_time" => "2025-02-18T19:47:39.417000Z"
+      }
+
+      expect(parser.parse_line(input)).to eq(expected_output)
+    end
   end
 end
