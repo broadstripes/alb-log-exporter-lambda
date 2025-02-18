@@ -19,32 +19,56 @@ class AlbLogExporter
   end
 
   def process_event(event:)
-    @logger.info("event = #{JSON.dump(event)}")
-    raise ArgumentError, "No records!" unless event.key?("Records")
+    check_event!(event)
 
-    log_files = s3_objects(event["Records"])
-    @logger.info("got #{log_files.length} files: #{log_files.inspect}")
-
-    log_files.each do |bucket, key|
+    success = true
+    s3_objects(event["Records"]).each do |bucket, key|
       file = fetch_log_file(bucket:, key:)
       send_logs_to_loggly(file:)
     rescue StandardError => e
       @logger.error(e.full_message)
+      success = false
     end
+    raise StandardError, "failed to process all files" unless success
+  end
+
+  def check_event!(event)
+    @logger.info("event = #{JSON.dump(event)}")
+    raise ArgumentError, "No records!" unless event.key?("Records")
   end
 
   def s3_objects(records)
-    records.map do |record|
-      bucket = record.dig("s3", "bucket", "name")
-      if bucket.nil? || bucket.empty?
-        @logger.error("bad bucket (#{bucket.inspect})")
-        next
-      end
+    objects = records.map do |record|
+      bucket = get_record_bucket(record)
+      key = get_record_key(record)
+      next unless bucket && key
 
-      key = record.dig("s3", "object", "key")
-      @logger.error("bad key") and next if key.nil? || key.empty?
-
+      @logger.info("got object: s3://#{bucket}/#{key}")
       [bucket, key]
+    end
+
+    @logger.info("got #{objects.length} files")
+
+    objects
+  end
+
+  def get_record_bucket(record)
+    bucket = record.dig("s3", "bucket", "name")
+    if bucket.nil? || bucket.empty?
+      @logger.error("bad bucket (#{record.inspect})")
+      nil
+    else
+      bucket
+    end
+  end
+
+  def get_record_key(record)
+    key = record.dig("s3", "object", "key")
+    if key.nil? || key.empty?
+      @logger.error("bad key (#{record.inspect})")
+      nil
+    else
+      key
     end
   end
 
